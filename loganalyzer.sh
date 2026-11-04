@@ -28,9 +28,25 @@ if [ ! -f "$LOGFILE" ]; then
 fi
 
 echo "Analyzing $LOGFILE ..."
+echo
+
 top_ips() {
     echo "Top $TOP_N IP addresses:"
     awk '{print $1}' "$LOGFILE" | sort | uniq -c | sort -rn | head -n "$TOP_N"
 }
 
+status_summary() {
+    echo "Status code summary:"
+    awk '{print $9}' "$LOGFILE" | sort | uniq -c | sort -rn
+}
+
+hourly_traffic() {
+    echo "Requests per hour:"
+    awk '{print $4}' "$LOGFILE" | cut -d: -f2 | sort | uniq -c
+}
+
 top_ips
+echo
+status_summary
+echo
+hourly_traffic
