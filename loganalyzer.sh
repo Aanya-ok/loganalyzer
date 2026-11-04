@@ -28,3 +28,9 @@ if [ ! -f "$LOGFILE" ]; then
 fi
 
 echo "Analyzing $LOGFILE ..."
+top_ips() {
+    echo "Top $TOP_N IP addresses:"
+    awk '{print $1}' "$LOGFILE" | sort | uniq -c | sort -rn | head -n "$TOP_N"
+}
+
+top_ips
