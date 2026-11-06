@@ -45,8 +45,31 @@ hourly_traffic() {
     awk '{print $4}' "$LOGFILE" | cut -d: -f2 | sort | uniq -c
 }
 
+top_pages() {
+    echo "Top $TOP_N requested pages:"
+    awk '{print $7}' "$LOGFILE" | sort | uniq -c | sort -rn | head -n "$TOP_N"
+}
+
+error_summary() {
+    local total errors
+    total=$(awk 'END {print NR}' "$LOGFILE")
+    errors=$(awk '$9 >= 400' "$LOGFILE" | wc -l)
+
+    echo "Error summary (status 400 and above):"
+    echo "  Total requests : $total"
+    echo "  Total errors   : $errors"
+    awk -v e="$errors" -v t="$total" 'BEGIN { printf "  Error rate     : %.1f%%\n", e * 100 / t }'
+    echo "  Breakdown:"
+    awk '$9 >= 400 {print $9}' "$LOGFILE" | sort | uniq -c | sort -rn | \
+        awk -v t="$total" '{ printf "    %s: %d requests (%.1f%%)\n", $2, $1, $1 * 100 / t }'
+}
+
 top_ips
 echo
+top_pages
+echo
 status_summary
+echo
+error_summary
 echo
 hourly_traffic
